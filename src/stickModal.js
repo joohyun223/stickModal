@@ -1,3 +1,4 @@
+
 (function(window){
   
   const modalConfig = {
@@ -31,7 +32,7 @@
         className: '',
         style:'display:inline-block',
         cont: 'subject',
-        display: 'show'
+        display: 'block'
       },
       header_close: {
         className: 'modal-header-close',
@@ -105,7 +106,6 @@
         elem.addEventListener(prop.event.type , prop.event.do.bind(this));
       }
       elem.style.cssText = prop.style;
-      console.log('ㅁㅁ' , elem);
       if(prop.display === 'none'){
         elem.style.display ='none'
       }
