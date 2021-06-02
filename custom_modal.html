@@ -8,8 +8,9 @@
     <script src="https://cdn.polyfill.io/v1/polyfill.min.js" async defer></script>
     <script type="text/babel" src="./src/stickModal.js"></script>
     <script type="text/babel">
-    //dim 추가
       const customConfig = {
+        cssStyle: true,
+        dimm: true,
         header_sub: {
           cont: '제목입니다',
           display: 'block'
@@ -24,7 +25,7 @@
             type: 'click',
             do: function(evt){
               console.log('modal close');
-              this.$entryEl.style.display = 'none';
+              this.hide();
             }
           }
         },
@@ -34,7 +35,7 @@
             type: 'click',
             do: function(evt){
               console.log('확인');
-              this.destroy();
+              this.hide();
             }
           } ,
           display: 'block'
@@ -45,34 +46,328 @@
             type: 'click',
             do: function(evt){
               console.log('취소');
-              this.destroy();
+              this.hide();
             }
           },
           display: 'block'
         }
       };
-      window.onload = ()=>{
-        let modal = new window.stickModal(document.querySelector('#app'), customConfig,{
-          on: {
-            init: function(){
-              window.addEventListener('resize', ()=>{
-                this.$on.resize.call(this);
-              });
-              window.dispatchEvent(new Event('resize'));
-            },
-            destroy: function(){
-            },
-            resize: function(){
-              this.$entryEl.style.top = window.innerHeight/2 - this.$entryEl.clientHeight/2 + "px";
-              this.$entryEl.style.left = window.innerWidth/2 - this.$entryEl.clientWidth/2 + "px";
-            }
+
+      const events = {
+        on: {
+          init: function(){
+            window.addEventListener('resize', (()=>{
+              this.$on.resize.call(this);
+              return ()=>{ this.$on.resize.call(this)};
+            })());
+          },
+          destroy: function(){
+          },
+          resize: function(){
+            this.$entryEl.style.top = window.innerHeight/2 - this.$entryEl.clientHeight/2 + "px";
+            this.$entryEl.style.left = window.innerWidth/2 - this.$entryEl.clientWidth/2 + "px";
           }
-        });
+        }
+      };
+      
+      window.onload = ()=>{
+        const modal = new StickModal(document.querySelector('#app'), customConfig , events);
       }
     </script>
+    <style>
+      .stick-modal{
+        display: none;
+        border: solid 1px #777;
+        padding: 10px;
+        border-radius: 8px;
+        width: 400px;
+        min-height: 100px;
+        position: fixed;
+        background: white;
+        z-index: 999999;
+        top: 29%;
+        left: 38%;
+        box-sizing: border-box; 
+      }
+      
+      .modal_header{
+        border-bottom: solid 1px #EEE;
+        padding-bottom: 10px;
+        font-size: 1rem;
+      }
+
+      .modal_header div{
+        display:inline-block;
+      }
+      
+      .modal_header button{
+        position: absolute;
+        right: 10px;
+        margin: 0px 5px;
+        padding: 5px 10px;
+        border-radius: 5px;
+        border: 1px solid rgb(0, 123, 255);
+        background: rgb(0, 123, 255);
+        color: white;
+      }
+
+      .modal_body{
+        text-align: center;
+        padding: 25px 0px; 
+        border-bottom: solid 1px #EEE; 
+        border-top: solid 1px #EEE;
+      }
+      
+      .modal_body p{
+        font-size: 1.3rem;
+      }
+      
+      .modal_footer{
+        padding-top: 10px;
+        text-align: center;
+        position: relative; 
+      }
+      .modal_footer button{
+        bottom: 10px; 
+        margin: 0px 5px;
+        padding: 5px 10px;
+        border-radius: 5px;
+        border: solid 1px #007bff;
+        background: #007bff;
+        color: white;
+      } 
+      
+      .dimmed{
+        display: none;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #000;
+        opacity: .65;
+        z-index: 999998;
+      }
+
+
+
+      /* discription */
+
+      .codeArea.template{
+        background-color: #222; 
+        line-height: .25;
+      }
+
+      .codeArea{
+        background-color: #222; 
+        line-height: 1.5;
+      }
+
+      .codeArea pre{
+        color:white;
+      }
+
+      table{
+        width: 100%;
+        border-collapse: collapse;
+        empty-cells: show;
+        border-spacing: 0;
+      }
+      table, table td, table th {
+        border: 1px solid #000;
+      }
+
+      table th {
+        text-align: left;
+        font-weight: 700;
+        color: #000;
+      }
+
+      table td, table th {
+        padding: 20px;
+      }
+
+      section{
+        margin-bottom: 50px;
+      }
+
+      section>p{
+        font-size: 1.2rem;
+        margin: 20px 0px 0px 10px;
+      }
+      
+
+    </style>
   </head>
   <body>
-    <div id="app">
-    </div>
+    <div id="app"></div>
+    <section>
+      <h2>Stick Modal</h2>
+      <p>퍼블리싱 없이 스크립트만으로 커스텀 모달을 html에 append합니다.</p>
+      <div class="example">
+        <button onclick="document.querySelector('.stick-modal').$stickmodal.show();">show Modal</button>
+      </div>
+
+      <p>모달 템플릿</p>
+      <div class="codeArea template">
+        <pre>
+          <p>&lt;div class=&quot;stick-modal&quot;&gt;</p>
+          <p>&nbsp;&nbsp;&lt;div class=&quot;modal_header&quot;&gt;</p>
+          <p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;제목입니다&lt;/div&gt;</p>
+          <p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;button class=&quot;modal-header-close&quot;&gt;X&lt;/button&gt;</p>
+          <p>&nbsp;&nbsp;&lt;/div&gt;</p>
+          <p>&nbsp;&nbsp;&lt;div class=&quot;modal_body&quot;&gt;</p>
+          <p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;p&gt;내용입니다.&lt;/p&gt;</p>
+          <p>&nbsp;&nbsp;&lt;/div&gt;</p>
+          <p>&nbsp;&nbsp;&lt;div class=&quot;modal_footer&quot;&gt;</p>
+          <p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;button class=&quot;modal-footer_confirm&quot;&gt;확인&lt;/button&gt;</p>
+          <p>&nbsp;&nbsp;&nbsp;&nbsp;&lt;button class=&quot;modal-footer_cancel&quot;&gt;취소&lt;/button&gt;</p>
+          <p>&nbsp;&nbsp;&lt;/div&gt;</p>
+          <p>&lt;/div&gt;</p>
+        </pre>
+      </div>
+    </section>
+    <section>
+      <p>예제:</p>
+      <div class="codeArea">
+        <pre>
+
+          //모달의 헤더/본문/푸터의 설정 오브젝트
+          const config = { 
+            cssStyle: true,                                   //css 적용여부 (라이브러리의 기본스타일 대신 사용자의 css로 디자인)
+            dimm: true,                                       //dimmed 적용여부. 적용시 body에 append됩니다.
+            header_sub: {         
+              cont: '제목입니다',                             //제목 
+              display: 'block'                               //제목영역 노출 여부
+            },
+            modal_contents: {                                
+              cont: '내용입니다.'                             //본문 내용
+            },
+            header_close: {
+              cont: 'X',
+              display: 'block',
+              event: {                                       //헤더 x버튼 클릭시 이벤트 적용
+                type: 'click',
+                do: function(evt){
+                  console.log('modal close');
+                  this.$entryEl.style.display = 'none';
+                }
+              }
+            },
+            footer_confirm: {                               //확인 버튼
+              cont: '확인',
+              event: {
+                type: 'click',
+                do: function(evt){
+                  console.log('확인');
+                  this.destroy();
+                }
+              } ,
+              display: 'block'
+            },
+            footer_cancel: {                                //취소 버튼
+              cont: '취소',
+              event: {
+                type: 'click',
+                do: function(evt){
+                  console.log('취소');
+                  this.destroy();
+                }
+              },
+              display: 'block'
+            }
+          };
+
+          
+          //init 콜백, destroy, resize 함수 정의
+          const events = {
+            on: {
+              init: function(){
+                window.addEventListener('resize', (()=>{
+                  this.$on.resize.call(this);
+                  return ()=>{ this.$on.resize.call(this)};
+                })());
+              },
+              destroy: function(){
+              },
+              resize: function(){
+                this.$entryEl.style.top = window.innerHeight/2 - this.$entryEl.clientHeight/2 + "px";
+                this.$entryEl.style.left = window.innerWidth/2 - this.$entryEl.clientWidth/2 + "px";
+              }
+            }
+          };
+
+          //모달 적용 (param: 모달 appned 컨테이너/ config/ event)
+          const modal = new StickModal(document.querySelector('#app'), config , events);  
+
+          //모달 show
+          modal.show();
+
+          //모달 hide
+          modal.hide();
+        </pre>
+      </div>
+      
+      <div>
+        <table>
+          <colgroup>
+            <col width="20%">
+            <col width="40%">
+            <col width="40%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Arguments</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>show</td>
+              <td></td>
+              <td>모달 보이기</td>
+            </tr>
+            <tr>
+              <td>hide</td>
+              <td></td>
+              <td>모달 숨기기</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <br>
+      <br>
+      
+      <div>
+        <table>
+          <colgroup>
+            <col width="20%">
+            <col width="40%">
+            <col width="40%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Properties</th>
+              <th>type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>$entryEl</td>
+              <td></td>
+              <td>모달 컨테이너 DOM 엘리먼트</td>
+            </tr>
+            <tr>
+              <td>$dimmed</td>
+              <td></td>
+              <td>dimmed DOM 엘리먼트</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
   </body>
 </html>

@@ -6,8 +6,9 @@
       entry: {
         className: 'stick-modal',
         tag: 'div',
-        style: "border: solid 1px #777;padding: 10px;border-radius: 8px;width: 400px;min-height: 100px;position: fixed;background: white;z-index: 10000;top: 29%;left: 49%;box-sizing: border-box;",
-        cont: ['modal_header', 'modal_body', 'modal_footer']
+        style: "border: solid 1px #777;padding: 10px;border-radius: 8px;width: 400px;min-height: 100px;position: fixed;background: white; z-index: 999999; top: 29%;left: 49%;box-sizing: border-box;",
+        cont: ['modal_header', 'modal_body', 'modal_footer'],
+        display: 'none'
       },
       modal_header: {
         className: 'modal_header',
@@ -58,6 +59,11 @@
         style: 'bottom: 10px; margin: 0px 5px; padding: 5px 10px;border-radius: 5px;border: solid 1px #007bff;background: #007bff;color: white;',
         cont: 'cancel',
       },
+      dimmed: {
+        className: 'dimmed',
+        tag: 'div',
+        style: 'display: block; position: fixed; top: 0; bottom: 0; left: 0; right: 0; background: #000; opacity: .65; z-index: 999998;'
+      }
     }
   }
 
@@ -65,15 +71,16 @@
     constructor($app, config, methods){
       this.$app = $app;
       this.$template = this.extend(true, modalConfig.template, config);
+      this.$dimmed = (this.$template.dimm)? this.createElem(document.body, this.$template.dimmed): undefined;
       this.$entryEl = this.createElem($app, modalConfig.template.entry);
-      this.$on = methods.on;
+      this.$on = (methods)?methods.on:undefined;
       this.$template.entry.cont.forEach((itm)=>{
         this.recursive(this.$entryEl, this.$template[itm]);
       })
-  
+      
       this.initComplete();
     }
-  
+    
     recursive(appendEl, prop){
       if(Array.isArray(prop)){
         prop.forEach((itm)=>{
@@ -97,30 +104,43 @@
     }
     
     createElem(appendedEl, prop){
+
       if(typeof prop ==='string'){
         appendedEl.append(prop);
         return;
       }
       let elem = document.createElement(prop.tag);
+
       if(prop.event){
         elem.addEventListener(prop.event.type , prop.event.do.bind(this));
       }
-      elem.style.cssText = prop.style;
-      if(prop.display === 'none'){
-        elem.style.display ='none'
-      }
+
+      elem.style.cssText = (this.$template.cssStyle)?null:prop.style;
+      elem.style.display = (prop.display === 'none')?'none':null;
       elem.className= (prop.className)?prop.className:"";
       appendedEl.append(elem);
       return elem;
     }
-  
+
     initComplete(){
-      this.$on.init.call(this);
+      (this.$on)?this.$on.init.call(this):null;
+      this.$entryEl.$stickmodal = this;
     }
   
     destroy(){
       this.$entryEl.remove();
+      (this.$dimmed)?this.$dimmed.remove():null;
       this.$on.destroy.call(this);
+    }
+
+    show(){
+      this.$entryEl.style.display='block';
+      (this.$dimmed)?this.$dimmed.style.display='block':'';
+      this.$on.resize.call(this);
+    }
+    hide(){
+      this.$entryEl.style.display='none';
+      (this.$dimmed)?this.$dimmed.style.display='none':'';
     }
 
     extend(){
@@ -160,6 +180,6 @@
     }
   }
 
-  window.stickModal = Modal;
+  window.StickModal = Modal;
   
 })(window);
